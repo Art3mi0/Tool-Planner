@@ -7,9 +7,7 @@ import math
 from ur5e_control.msg import Plan
 from geometry_msgs.msg import Twist
 
-global r
-r = .1
-global inc
+r = .05
 inc = .3
 robot_params = Twist()
 got_params = False
@@ -99,11 +97,23 @@ def createPlanSquare(rStart):
 def createPlanCircle(rStart):
 	# define variables
 	plan = Plan()
-	plan_point = Twist()
+
 	theta = 0
 	stop = 2 * math.pi
 	
+	plan_point1 = Twist()
+	# define a point close to the initial position
+	plan_point1.linear.x = rStart.linear.x
+	plan_point1.linear.y = rStart.linear.y
+	plan_point1.linear.z = rStart.linear.z
+	plan_point1.angular.x = rStart.angular.x
+	plan_point1.angular.y = rStart.angular.y
+	plan_point1.angular.z = rStart.angular.z
+	# add this point to the plan
+	plan.points.append(plan_point1)
+	
 	while theta < stop:
+		plan_point = Twist()
 		plan_point.linear.x = rStart.linear.x + (r * math.cos(theta))
 		plan_point.linear.y = rStart.linear.y + (r * math.sin(theta))
 		plan_point.linear.z = rStart.linear.z
@@ -113,6 +123,10 @@ def createPlanCircle(rStart):
 		# add this point to the plan
 		plan.points.append(plan_point)
 		theta += inc
+		if theta < 0.9:
+			print(rStart.linear.x,'----', r, '----', math.cos(theta), '----', plan_point.linear.x)
+			
+			print(plan)
 		
 	return plan
 
@@ -133,6 +147,8 @@ if __name__ == '__main__':
 			#plan = createPlanSquare(robot_params)
 			plan = createPlanCircle(robot_params)
 			planCreated = True
+			print("plan created")
+			
 		# publish the plan
 		if planCreated:
 			plan_pub.publish(plan)
